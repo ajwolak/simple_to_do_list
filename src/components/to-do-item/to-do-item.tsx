@@ -1,24 +1,23 @@
 import React, { useState } from "react";
-import TodoItemProps from "./to-do-item-props";
 import { Draggable } from "@hello-pangea/dnd";
-import { useAlert } from "../../context/alert-context";
-import validateName from "../../hooks/validate-name";
+import useToDoItemEditor from "../../hooks/useToDoItemEditor.ts";
+import TodoItemProps from "./to-do-item-props.ts";
+import LoadingSpinner from "../loading-spinner/loading-spinner.tsx";
 
 const ToDoItem = ({ task, index, onDelete }: TodoItemProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedValue, setEditedValue] = useState(task.name);
-  const [currentName, setCurrentName] = useState(task.name);
-  const { showAlert } = useAlert();
-
-  const handleSave = () => {
-    if (validateName(editedValue, showAlert)) {
-      setCurrentName(editedValue);
-      setIsEditing(false);
-    }
-  };
+  const [isDeleting, setIsDeleting] = useState(false);
+  const {
+    isLoading,
+    isEditing,
+    setIsEditing,
+    editedValue,
+    setEditedValue,
+    currentName,
+    updateName,
+  } = useToDoItemEditor(task, process.env.REACT_APP_API_URL);
 
   return (
-    <Draggable draggableId={task.id} index={index}>
+    <Draggable draggableId={task.positionOnList.toString()} index={index}>
       {(provided) => (
         <li
           className="list-group-item d-flex justify-content-between align-items-center"
@@ -26,7 +25,10 @@ const ToDoItem = ({ task, index, onDelete }: TodoItemProps) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          <span className="flex-grow-1 me-3">
+          <span
+            className="flex-grow-1 me-3"
+            style={{ wordBreak: "break-word" }}
+          >
             {isEditing ? (
               <input
                 type="text"
@@ -38,13 +40,13 @@ const ToDoItem = ({ task, index, onDelete }: TodoItemProps) => {
               currentName
             )}
           </span>
-          <div>
+          <div className="d-flex justify-content-between align-items-center">
             {isEditing ? (
               <button
                 className="btn btn-sm btn-outline-success me-2"
-                onClick={handleSave}
+                onClick={isLoading ? () => {} : () => updateName()}
               >
-                Zapisz
+                {isLoading ? <LoadingSpinner /> : "Zapisz"}
               </button>
             ) : (
               <button
@@ -56,11 +58,11 @@ const ToDoItem = ({ task, index, onDelete }: TodoItemProps) => {
             )}
             <button
               className="btn btn-sm btn-outline-danger"
-              onClick={() => {
-                onDelete(task.id);
-              }}
+              onClick={
+                isDeleting ? () => {} : () => onDelete(task.id, setIsDeleting)
+              }
             >
-              Usuń
+              {isDeleting ? <LoadingSpinner /> : "Usuń"}
             </button>
           </div>
         </li>
