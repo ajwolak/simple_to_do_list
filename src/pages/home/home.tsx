@@ -2,20 +2,54 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useAlert } from "../../context/alert-context";
 import useToDoItem from "../../hooks/useToDoItem.ts";
-import validateName from "../../hooks/validate-name";
+import validateName from "../../hooks/validate-name.ts";
 import AddTaskForm from "../../components/add-task-form/add-task-form.tsx";
 import EmptyListInfo from "../../components/empty-list-info/empty-list-info.tsx";
 import LoadingSpinner from "../../components/loading-spinner/loading-spinner.tsx";
 import ToDoItem from "../../components/to-do-item/to-do-item.tsx";
-import useDragEnd from "../../hooks/useDregEnd.ts";
 
 const Home = () => {
-  const { tasks, addItem, loading, saving, fetchItems, deleteItem } =
-    useToDoItem(process.env.REACT_APP_API_URL);
+  const {
+    tasks,
+    addItem,
+    loading,
+    saving,
+    fetchItems,
+    deleteItem,
+    updateItem,
+  } = useToDoItem(process.env.REACT_APP_API_URL);
   const [isAdding, setIsAdding] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
   const { showAlert } = useAlert();
-  const { dragEnd } = useDragEnd(tasks);
+
+  const dragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const fromIndex = result.source.index;
+    const toIndex = result.destination.index;
+    if (fromIndex === toIndex) return;
+
+    const updatedTasks = Array.from(tasks);
+    const [movedTask] = updatedTasks.splice(fromIndex, 1);
+
+    if (!movedTask) {
+      return;
+    }
+
+    updatedTasks.splice(toIndex, 0, movedTask);
+
+    const patchedTasks = updatedTasks.map((task, index) => {
+      if (!task || typeof task !== "object") {
+        throw new Error("Nieprawidłowy element w liście zadań");
+      }
+
+      return {
+        ...task,
+        positionOnList: index + 1,
+      };
+    });
+    await updateItem(patchedTasks, tasks);
+  };
 
   const handleSaveNewTask = async () => {
     if (validateName(newTaskName, showAlert)) {

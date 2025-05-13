@@ -64,7 +64,15 @@ export default function useToDoItem(apiUrl) {
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
-        setTasks((prev) => prev.filter((t) => t.id !== id));
+        const newTasks = tasks
+          .filter((t) => t.id !== id)
+          .map((task, index) => ({
+            ...task,
+            positionOnList: index + 1,
+          }));
+
+        setTasks(newTasks);
+        await updateItem(newTasks, tasks);
       } else {
         showAlert("Nie udało się usunąć zadania", "danger");
       }
@@ -92,11 +100,11 @@ export default function useToDoItem(apiUrl) {
       });
 
       if (!response.ok) {
-        // setTasks(originalTasks);
+        setTasks(originalTasks);
         throw new Error();
       }
     } catch (err) {
-      // setTasks(originalTasks);
+      setTasks(originalTasks);
       console.error("Błąd podczas aktualizacji miejsc na liście:", err);
       showAlert("Nie udało się zaktualizować listy", "danger");
     }

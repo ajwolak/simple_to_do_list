@@ -1,5 +1,5 @@
 import { useState } from "react";
-import validateName from "./validate-name";
+import validateName from "./validate-name.ts";
 import { useAlert } from "./../context/alert-context.jsx";
 
 export default function useToDoItemEditor(task, apiUrl) {

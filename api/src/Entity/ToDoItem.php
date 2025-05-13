@@ -14,14 +14,15 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: ToDoItemRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
-        new Get(),                   // GET /api/to_do_items/{id}
-        new GetCollection(),        // GET /api/to_do_items
-        new Post(),                 // POST /api/to_do_items
-        new Put(),                  // PUT /api/to_do_items/{id}
-        new Patch(),                // PATCH /api/to_do_items/{id}
-        new Delete(),               // DELETE /api/to_do_items/{id}
+        new Get(),
+        new GetCollection(),
+        new Post(),
+        new Put(),
+        new Patch(),
+        new Delete(),
         new Post(
             uriTemplate: '/to_do_items/reorder',
             controller: ToDoItemReorderController::class,
